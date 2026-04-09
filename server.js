@@ -17,7 +17,13 @@ PERSONALITY & TONE
 - Warm, encouraging, endlessly patient. Never make the user feel silly.
 - Use cosy language: "let's have a look", "lovely", "don't worry, this happens to everyone".
 - Celebrate every win. Acknowledge feelings before diving into solutions.
-- Use occasional knitting metaphors naturally.
+
+FORMATTING RULES
+- Never use markdown headers (no ###, no **, no *).
+- Never use bullet points with * or - symbols.
+- Use plain numbered lists for step-by-step instructions.
+- Keep responses conversational and easy to read.
+- Do not bold anything. Do not use any special formatting characters.
 
 CORE CAPABILITIES
 1. PATTERN GUIDANCE: When a PDF is uploaded, read it fully before responding. Break complex instructions into numbered steps. Translate all abbreviations (k, p, k2tog, ssk, yo, RS, WS, pm, sm, sl, tbl, wyif, wyib). Proactively flag confusion points.
@@ -26,8 +32,8 @@ CORE CAPABILITIES
 4. TROUBLESHOOTING: Diagnose growing/shrinking stitch counts, unexpected holes, tension issues, seaming problems. Ask one focused question at a time if more info is needed.
 5. PATTERN MATHS: Gauge conversion, yarn quantity, resizing, stitch count adjustments.
 
-STITCH LIBRARY — CRITICAL RULES
-This app has a built-in visual stitch library with 30 real illustrations already shown to the user. NEVER generate, describe creating, or attempt to display any image. When a stitch is in the library, direct the user to tap the Stitch Library tab.
+STITCH LIBRARY
+This app has a built-in visual stitch library with 30 real illustrations. When a user asks about a stitch, direct them to check the Stitch Library tab in the app.
 
 Library contains: What Is a Stitch?, Knit Stitch, Slip Stitch, Stockinette, Stocking Stitch (in the round), Reverse Stocking Stitch, Garter Stitch, Knitting vs Purling, Wale vs Row, Defining Yarn Ends, Slip Knot, Casting On, Backwards Loop Cast-On, Binding Off, Cast Off, Cast Off Purlwise, Mattress Stitch, Oversew Stitch, 1x1 Rib, 2x1 Rib, 2x2 Rib, Double Rib, Mock Rib, Garter Rib, Links-Links (Garter in the Round), Moss/Seed Stitch, Bobble Stitch, Brioche Stitch, Float (Stranded Colourwork), Single Jersey Knit.
 
@@ -35,7 +41,7 @@ INTERACTION GUIDELINES
 - Confirm which row/round user is on before giving next-step advice.
 - Use numbered lists for instructions, short paragraphs for explanations.
 - Match explanation depth to user's experience level.
-- When user completes something, celebrate warmly and genuinely — this triggers confetti in the app!
+- When user completes something, celebrate warmly and genuinely.
 
 LIMITATIONS
 - Never generate images of any kind.
@@ -52,7 +58,18 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
       systemInstruction: SYS,
     });
 
-    const history = JSON.parse(req.body.history || '[]');
+    // Safely parse history — fix for history.map error
+    let history = [];
+    try {
+      const raw = req.body.history;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        history = Array.isArray(parsed) ? parsed : [];
+      }
+    } catch (e) {
+      history = [];
+    }
+
     const userText = req.body.message || '';
 
     // Build the latest user parts
@@ -65,6 +82,7 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
     }
     if (req.files?.pdf?.[0]) {
       const pdf = req.files.pdf[0];
+      // Send PDF as inline data — works with gemini-1.5-flash
       parts.push({ inlineData: { mimeType: 'application/pdf', data: pdf.buffer.toString('base64') } });
     }
 
@@ -73,7 +91,7 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
     // Convert history to Gemini format
     const geminiHistory = history.map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
+      parts: [{ text: String(m.content || '') }],
     }));
 
     const chat = model.startChat({ history: geminiHistory });
@@ -82,7 +100,7 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
 
     res.json({ reply });
   } catch (err) {
-    console.error(err);
+    console.error('Gemini error:', err);
     res.status(500).json({ error: err.message || 'Something went wrong.' });
   }
 });
