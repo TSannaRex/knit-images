@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KnitMentor – Your AI Knitting Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="hl">
+      <span class="logo">🧶</span>
+      <div><h1>KnitMentor</h1><p>Your patient, always-available knitting guide</p></div>
+    </div>
+    <div class="sdot"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="sw('chat')">💬 Mentor Chat</button>
+    <button class="tab" onclick="sw('lib')">📚 Stitch Library</button>
+  </div>
+
+  <!-- CHAT -->
+  <div class="panel active" id="p-chat">
+    <div class="msgs" id="msgs">
+      <div class="msg mentor">
+        <div class="av mentor">🧶</div>
+        <div class="bubble">Hello lovely! I'm your knitting mentor. 🌸<br><br>
+        I'm here to guide you through any pattern, stitch, or puzzle — step by step, at your own pace.<br><br>
+        📄 Upload your <strong>PDF pattern</strong> or 📷 share a <strong>photo of your work</strong> if you're stuck.<br><br>
+        What are we working on today?</div>
+      </div>
+    </div>
+    <div class="input-area">
+      <div class="previews" id="prevs"></div>
+      <div class="row">
+        <div class="actions">
+          <button class="ibtn" title="Upload PDF pattern" onclick="document.getElementById('fi').click()">📄</button>
+          <button class="ibtn" title="Upload photo of your knitting" onclick="document.getElementById('ii').click()">📷</button>
+        </div>
+        <textarea id="ci" placeholder="Ask me anything about your knitting..." onkeydown="hk(event)" oninput="ar(this)"></textarea>
+        <button class="sbtn" id="sb" onclick="send()">➤</button>
+      </div>
+    </div>
+    <input type="file" id="fi" accept=".pdf" onchange="hf(this)">
+    <input type="file" id="ii" accept="image/*" onchange="hi(this)">
+  </div>
+
+  <!-- LIBRARY -->
+  <div class="panel" id="p-lib">
+    <div class="lib">
+      <h2>Stitch &amp; Technique Library</h2>
+      <p class="libdesc">Tap any card to see the full illustration and step-by-step instructions. All 30 illustrations are your own — none are AI-generated.</p>
+      <input class="searchbar" id="sb2" placeholder="🔍  Search stitches, techniques..." oninput="fs()">
+      <div class="sgrid" id="sg"></div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-bg" id="modal" onclick="closeModal(event)">
+    <div class="modal" id="modal-inner">
+      <div class="modal-img-wrap"><img id="modal-img" src="" alt="" onclick="openLightbox()"><button class="zoom-btn" onclick="openLightbox()">🔍 View full size</button></div>
+      <div class="modal-body">
+        <div id="modal-name" class="modal-name"></div>
+        <div id="modal-tag"></div>
+        <div id="modal-desc" class="modal-desc"></div>
+        <div id="modal-steps" class="modal-steps"></div>
+        <div class="modal-footer">
+          <button class="modal-ask" id="modal-ask-btn">💬 Ask Mentor about this</button>
+          <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cf" id="cf"></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)"><button class="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('open')">✕</button><img id="lightbox-img" src="" alt=""></div>
+
+<script src="stitches.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
