@@ -54,7 +54,7 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       systemInstruction: SYS,
     });
 
@@ -82,7 +82,7 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
     }
     if (req.files?.pdf?.[0]) {
       const pdf = req.files.pdf[0];
-      // Send PDF as inline data — works with gemini-1.5-flash
+      // Send PDF as inline data — works with gemini-3-flash-preview
       parts.push({ inlineData: { mimeType: 'application/pdf', data: pdf.buffer.toString('base64') } });
     }
 
