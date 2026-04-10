@@ -52,7 +52,7 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
   if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY not set on server.' });
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const ai = new GoogleGenAI({ apiKey });
     const model = genAI.getGenerativeModel({
       model: 'gemini-3-flash-preview',
       systemInstruction: SYS,
