@@ -90,7 +90,7 @@ function hk(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sen
 function ar(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
 
 // ─── CHAT ─────────────────────────────────────────────────────────────────────
-var history = [];
+var chatHistory = [];
 
 async function send() {
   var inp = document.getElementById('ci');
@@ -99,23 +99,21 @@ async function send() {
 
   document.getElementById('sb').disabled = true;
 
-  // Show user message
   var dispParts = [];
   if (txt) dispParts.push('<span>' + txt + '</span>');
   if (pendingImage) dispParts.push('<em style="font-size:11px;opacity:.7">📷 ' + pendingImage.name + '</em>');
   if (pendingPdf) dispParts.push('<em style="font-size:11px;opacity:.7">📄 ' + pendingPdf.name + '</em>');
   addMsg('user', dispParts.join('<br>'));
 
-  // Build FormData for server
   var fd = new FormData();
   fd.append('message', txt);
-  fd.append('history', JSON.stringify(history));
+  fd.append('history', JSON.stringify(chatHistory));
   if (pendingImage) fd.append('image', pendingImage);
   if (pendingPdf) fd.append('pdf', pendingPdf);
 
   inp.value = ''; inp.style.height = 'auto';
   document.getElementById('prevs').innerHTML = '';
-  var imgSnap = pendingImage; pendingImage = null; pendingPdf = null;
+  pendingImage = null; pendingPdf = null;
 
   var tid = showT();
 
@@ -126,8 +124,8 @@ async function send() {
 
     removeT(tid);
     addMsg('mentor', data.reply.replace(/\n/g, '<br>'));
-    history.push({ role: 'user', content: txt || '(uploaded file)' });
-    history.push({ role: 'assistant', content: data.reply });
+    chatHistory.push({ role: 'user', content: txt || '(uploaded file)' });
+    chatHistory.push({ role: 'assistant', content: data.reply });
 
     if (/finished|complete|done!|congrats|you did it|well done|perfect|nailed it|cast.?off|you made it/i.test(data.reply)) {
       confetti();
@@ -172,7 +170,7 @@ function confetti() {
   }
 }
 
-// ─── LIGHTBOX ──────────────────────────────────────────────────────────────
+// ─── LIGHTBOX ─────────────────────────────────────────────────────────────────
 function openLightbox() {
   var src = document.getElementById('modal-img').src;
   var alt = document.getElementById('modal-img').alt;
