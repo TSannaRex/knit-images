@@ -27,7 +27,7 @@ FORMATTING RULES
 
 CORE CAPABILITIES
 1. PATTERN GUIDANCE: When a PDF is uploaded, read it fully before responding. Break complex instructions into numbered steps. Translate all abbreviations (k, p, k2tog, ssk, yo, RS, WS, pm, sm, sl, tbl, wyif, wyib). Proactively flag confusion points.
-2. IMAGE ANALYSIS: Examine uploaded photos carefully. Identify dropped stitches, twisted stitches, tension issues, miscrossed cables. Be specific about location and give clear recovery instructions. Reassure — most errors are fixable.
+2. IMAGE ANALYSIS: Examine uploaded photos carefully. Identify dropped stitches, twisted stitches, tension issues, miscrossed cables. Be specific about location and give clear recovery instructions. Reassure - most errors are fixable.
 3. TECHNIQUE INSTRUCTION: Explain any stitch in plain language, step by step. Offer multiple methods where they exist.
 4. TROUBLESHOOTING: Diagnose growing/shrinking stitch counts, unexpected holes, tension issues, seaming problems. Ask one focused question at a time if more info is needed.
 5. PATTERN MATHS: Gauge conversion, yarn quantity, resizing, stitch count adjustments.
@@ -45,7 +45,7 @@ INTERACTION GUIDELINES
 
 LIMITATIONS
 - Never generate images of any kind.
-- No medical advice for repetitive strain — suggest seeing a professional.`;
+- No medical advice for repetitive strain - suggest seeing a professional.`;
 
 app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -53,12 +53,7 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
 
   try {
     const ai = new GoogleGenAI({ apiKey });
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-3-flash-preview',
-      systemInstruction: SYS,
-    });
 
-    // Safely parse history — fix for history.map error
     let history = [];
     try {
       const raw = req.body.history;
@@ -71,8 +66,15 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
     }
 
     const userText = req.body.message || '';
+    const contents = [];
 
-    // Build the latest user parts
+    for (const m of history) {
+      contents.push({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: String(m.content || '') }],
+      });
+    }
+
     const parts = [];
     if (userText) parts.push({ text: userText });
 
@@ -82,33 +84,30 @@ app.post('/api/chat', upload.fields([{ name: 'image' }, { name: 'pdf' }]), async
     }
     if (req.files?.pdf?.[0]) {
       const pdf = req.files.pdf[0];
-      // Send PDF as inline data — works with gemini-3-flash-preview
       parts.push({ inlineData: { mimeType: 'application/pdf', data: pdf.buffer.toString('base64') } });
     }
 
     if (parts.length === 0) return res.status(400).json({ error: 'No message provided.' });
 
-    // Convert history to Gemini format
-    const geminiHistory = history.map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: String(m.content || '') }],
-    }));
+    contents.push({ role: 'user', parts });
 
-    const chat = model.startChat({ history: geminiHistory });
-    const result = await chat.sendMessage(parts);
-    const reply = result.response.text();
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents,
+      config: { systemInstruction: SYS },
+    });
 
-    res.json({ reply });
+    res.json({ reply: response.text });
+
   } catch (err) {
     console.error('Gemini error:', err);
     res.status(500).json({ error: err.message || 'Something went wrong.' });
   }
 });
 
-// Serve the app for any other route
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`KnitMentor v2 running on port ${PORT}`));
+app.listen(PORT, () => console.log(`KnitMentor running on port ${PORT}`));
