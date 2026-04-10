@@ -1,5 +1,5 @@
 import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
